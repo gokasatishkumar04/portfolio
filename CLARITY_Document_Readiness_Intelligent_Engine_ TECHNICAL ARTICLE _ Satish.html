@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLARITY — Document Readiness Intelligent Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --white: #ffffff;
+  --surface: #faf7fd;
+  --ink: #161418;
+  --ink2: #201c26;
+  --purple: #a100ff;
+  --purple-dark: #7500c0;
+  --purple-pale: #f3e5ff;
+  --violet: #2b0a40;
+  --violet-pale: #efe6f7;
+  --violet-dark: #1a0626;
+  --muted: #6b6570;
+  --border: #e7e2ee;
+  --tag: #f2f0f5;
+  --gray: #f2f2f2;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; }
+
+.ribbon { background: var(--violet-dark); color: #fff; padding: 8px 60px; display: flex; justify-content: space-between; align-items: center; }
+.rib-l { font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 2px; color: #e6c9ff; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.rib-l::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 8px rgba(161,0,255,0.6); animation: pulse-dot 2.2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(0.7); } }
+@media (prefers-reduced-motion: reduce) { .rib-l::before { animation: none; } }
+.rib-r { font-family: 'Fira Code', monospace; font-size: 9.5px; color: rgba(255,255,255,0.65); letter-spacing: 1px; }
+
+.masthead { background: var(--white); border-bottom: 2px solid var(--ink); display: grid; grid-template-columns: 1fr 340px; }
+.mh-left { position: relative; overflow: hidden; z-index: 1; padding: 64px 60px; border-right: 2px solid var(--ink); }
+.mh-left::after {
+  content: '{ }';
+  position: absolute;
+  right: 10px;
+  bottom: -60px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 220px;
+  line-height: 1;
+  color: var(--purple);
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+.mh-eyebrow, .mh-title, .mh-desc, .tag-row { position: relative; z-index: 1; }
+.mh-eyebrow { font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-dark); margin-bottom: 22px; display: inline-flex; align-items: center; gap: 10px; background: var(--purple-pale); border: 1px solid #dba9ff; padding: 7px 16px 7px 12px; border-radius: 20px; }
+.mh-eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--purple); flex-shrink: 0; }
+.mh-title { font-family: 'Sora', sans-serif; font-size: clamp(38px, 5.4vw, 64px); font-weight: 800; line-height: 1.03; letter-spacing: -1.2px; color: var(--ink); margin-bottom: 24px; }
+.mh-title .accent { color: var(--purple); }
+.mh-title .under { text-decoration: underline; text-decoration-color: var(--violet); text-underline-offset: 7px; text-decoration-thickness: 3px; }
+.mh-desc { font-size: 15.5px; color: var(--muted); line-height: 1.75; max-width: 600px; margin-bottom: 28px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { font-family: 'Fira Code', monospace; font-size: 9.5px; letter-spacing: 0.5px; text-transform: uppercase; background: var(--tag); border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: 2px; }
+.tag.amber { background: var(--purple-pale); border-color: #dba9ff; color: var(--purple-dark); }
+.tag.maroon { background: var(--violet-pale); border-color: #d3bfe6; color: var(--violet); }
+
+.mh-right { position: relative; overflow: hidden; padding: 40px 36px; display: flex; flex-direction: column; gap: 10px; justify-content: center; background: linear-gradient(160deg, var(--purple) 0%, var(--purple-dark) 100%); }
+.mh-right::before { content: ''; position: absolute; top: -40%; left: -20%; width: 70%; height: 70%; background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%); pointer-events: none; }
+.mhr-title { position: relative; font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+.stat-card { position: relative; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); backdrop-filter: blur(6px); border-radius: 6px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px; }
+.stat-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+.stat-label { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
+.stat-val { font-size: 13.5px; font-weight: 700; color: #ffffff; }
+
+.tabs { background: var(--white); border-bottom: 2px solid var(--ink); display: flex; padding: 0 60px; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { font-family: 'Fira Code', monospace; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 14px 22px; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.18s; display: flex; align-items: center; gap: 8px; position: relative; bottom: -2px; }
+.tab:hover { color: var(--ink); }
+.tab.on { color: var(--ink); border-bottom-color: var(--purple); font-weight: 600; }
+.tab .n { font-size: 9px; background: var(--tag); padding: 2px 7px; border-radius: 20px; color: var(--muted); }
+.tab.on .n { background: var(--purple); color: white; }
+
+main { max-width: 1180px; margin: 0 auto; padding: 52px 60px 120px; }
+.panel { display: none; }
+.panel.on { display: block; animation: rise 0.3s ease; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.sec-eyebrow { font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.sec-eyebrow::before { content: ''; width: 24px; height: 3px; background: var(--purple); display: inline-block; }
+.sec-h { font-family: 'Sora', sans-serif; font-size: clamp(26px, 3.6vw, 42px); font-weight: 800; line-height: 1.06; letter-spacing: -0.8px; color: var(--ink); margin-bottom: 14px; }
+.sec-h span { color: var(--purple-dark); }
+.sec-sub { font-size: 14px; color: var(--muted); max-width: 760px; margin-bottom: 40px; }
+
+.box { background: var(--white); border: 1.5px solid var(--border); padding: 32px 36px; margin-bottom: 2px; }
+.box.full { margin-bottom: 32px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 32px; }
+.box-eye { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.box-eye.a::before { content: '▶'; color: var(--purple); font-size: 7px; }
+.box-title { font-family: 'Sora', sans-serif; font-size: 19px; font-weight: 700; color: var(--ink); margin-bottom: 14px; line-height: 1.3; }
+.box-body { font-size: 13.5px; color: var(--muted); line-height: 1.8; }
+.box-body p { margin-bottom: 11px; }
+.box-body p:last-child { margin-bottom: 0; }
+.hi { color: var(--purple-dark); font-weight: 600; }
+.hi2 { color: var(--violet); font-weight: 600; }
+
+.role-list { list-style: none; }
+.role-list li { position: relative; padding-left: 26px; margin-bottom: 14px; font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+.role-list li::before { content: '→'; position: absolute; left: 0; color: var(--purple-dark); font-weight: 700; }
+.role-list li strong { color: var(--ink); }
+
+/* STACK TABLE */
+.stk { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 40px; }
+.stk thead { background: var(--purple-pale); }
+.stk th { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--purple-dark); padding: 11px 16px; text-align: left; font-weight: 600; }
+.stk td { padding: 14px 16px; border-bottom: 1.5px solid var(--bg); color: var(--muted); vertical-align: top; line-height: 1.7; background: var(--white); }
+.stk tr:last-child td { border-bottom: none; }
+.stk td:first-child { font-weight: 700; color: var(--purple-dark); white-space: nowrap; width: 40px; font-family: 'Fira Code', monospace; }
+.stk td:nth-child(2) { font-weight: 700; color: var(--ink); width: 210px; }
+.stk td .ex { display: block; margin-top: 6px; font-size: 12px; color: var(--violet); }
+.stk td .ex b { font-family: 'Fira Code', monospace; font-weight: 500; color: var(--violet); }
+
+/* CLASSIFICATION REPORT TABLE */
+.rpt { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 32px; }
+.rpt thead { background: var(--violet-pale); }
+.rpt th { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--violet); padding: 12px 18px; text-align: left; font-weight: 600; }
+.rpt td { padding: 13px 18px; border-bottom: 1.5px solid var(--bg); color: var(--muted); background: var(--white); }
+.rpt tr:last-child td { border-bottom: none; }
+.rpt td:first-child { font-weight: 700; color: var(--ink); }
+.rpt tr.bad { background: #fff6f5; }
+.rpt tr.bad td:first-child { color: #b3261e; }
+.rpt tr.bad td:first-child::before { content: '● '; font-size: 9px; }
+.rpt tr.med td:first-child::before { content: '● '; font-size: 9px; color: var(--purple); }
+.rpt tr.good td:first-child::before { content: '● '; font-size: 9px; color: #276b30; }
+
+/* ROUTING TABLE */
+.rte { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 40px; }
+.rte thead { background: var(--ink); }
+.rte th { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #fff; padding: 12px 18px; text-align: left; font-weight: 600; }
+.rte td { padding: 15px 18px; border-bottom: 1.5px solid var(--border); color: var(--muted); background: var(--white); font-size: 13.5px; }
+.rte tr:last-child td { border-bottom: none; }
+.rte td:first-child { font-family: 'Fira Code', monospace; font-weight: 700; letter-spacing: 1px; }
+.rte tr.g td:first-child { color: #276b30; }
+.rte tr.m td:first-child { color: var(--purple-dark); }
+.rte tr.b td:first-child { color: #b3261e; }
+
+.stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-bottom: 40px; }
+.stat-block { background: var(--white); color: var(--ink); border: 1.5px solid var(--border); border-top: 3px solid var(--purple); padding: 26px 28px; }
+.stat-block .sb-eye { font-family: 'Fira Code', monospace; font-size: 8.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--purple-dark); margin-bottom: 10px; }
+.stat-block .sb-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.stat-block .sb-num { font-family: 'Sora', sans-serif; font-size: 30px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+
+/* CHALLENGE / SAFEGUARD CARDS */
+.chal-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 4px; padding: 28px 32px; margin-bottom: 16px; position: relative; }
+.chal-n { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 15px; color: var(--violet); position: absolute; top: 26px; right: 30px; }
+.chal-title { font-family: 'Sora', sans-serif; font-size: 17.5px; font-weight: 700; color: var(--ink); margin-bottom: 14px; max-width: 85%; }
+.chal-row { display: grid; grid-template-columns: 90px 1fr; gap: 14px; margin-bottom: 10px; }
+.chal-row:last-child { margin-bottom: 0; }
+.chal-lbl { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding-top: 2px; }
+.chal-lbl.p { color: var(--violet); }
+.chal-lbl.s { color: var(--purple-dark); }
+.chal-txt { font-size: 13.5px; color: var(--muted); line-height: 1.75; }
+
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 32px; }
+.kpi-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 4px; padding: 22px 24px; border-left: 4px solid var(--purple); }
+.kpi-card.biz { border-left-color: var(--violet); }
+.kpi-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+.kpi-name .kv { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 20px; color: var(--purple-dark); }
+.kpi-card.biz .kpi-name .kv { color: var(--violet); }
+.kpi-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.kpi-body b { color: var(--ink); }
+
+/* ARCHITECTURE LAYERS */
+.layer { display: grid; grid-template-columns: 190px 1fr; gap: 24px; padding: 26px 0; border-bottom: 1.5px dashed var(--border); }
+.layer:last-of-type { border-bottom: none; }
+.layer-num { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 38px; color: var(--purple-pale); -webkit-text-stroke: 1.5px var(--purple-dark); line-height: 1; }
+.layer-name { font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--purple-dark); margin-top: 6px; }
+.layer-title { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.layer-body { font-size: 13.5px; color: var(--muted); line-height: 1.75; }
+
+.uc-full { background: var(--surface); border: 1.5px solid var(--border); border-left: 4px solid var(--purple); border-radius: 4px; padding: 40px 44px; margin-top: 8px; }
+.uc-full .ufl-eye { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-dark); margin-bottom: 12px; }
+.uc-full h3 { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 20px; line-height: 1.25; }
+.uc-full-body p { font-size: 13.5px; color: var(--muted); line-height: 1.8; margin-bottom: 12px; }
+.uc-full-body p:last-child { margin-bottom: 0; }
+.uc-full-body b { color: var(--purple-dark); }
+
+/* VERTICAL PIPELINE DIAGRAM */
+.vdiag { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 8px 0 14px; }
+.vdiag-box { width: 100%; max-width: 520px; border-radius: 10px; padding: 16px 22px; text-align: center; border: 1.5px solid var(--border); }
+.vdiag-box .vb-t { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
+.vdiag-box .vb-d { font-size: 12px; color: var(--muted); }
+.vdiag-box.c1 { background: var(--gray); }
+.vdiag-box.c1 .vb-t { color: var(--ink); }
+.vdiag-box.c2 { background: var(--purple-pale); }
+.vdiag-box.c2 .vb-t { color: var(--purple-dark); }
+.vdiag-box.c2 .vb-d { color: var(--purple-dark); opacity: 0.85; }
+.vdiag-box.c3 { background: #fff0e0; }
+.vdiag-box.c3 .vb-t { color: #9a5b00; }
+.vdiag-box.c3 .vb-d { color: #9a5b00; opacity: 0.85; }
+.vdiag-box.c4 { background: var(--violet-pale); }
+.vdiag-box.c4 .vb-t { color: var(--violet); }
+.vdiag-box.c4 .vb-d { color: var(--violet); opacity: 0.85; }
+.vdiag-box.c5 { background: #e9f6ea; }
+.vdiag-box.c5 .vb-t { color: #276b30; }
+.vdiag-box.c5 .vb-d { color: #276b30; opacity: 0.85; }
+.vdiag-arrow { color: var(--muted); font-size: 18px; padding: 6px 0; }
+.vdiag-note { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 6px; font-style: italic; }
+.vdiag-split { display: flex; gap: 14px; width: 100%; max-width: 520px; justify-content: center; }
+.vdiag-split .vdiag-box { max-width: 250px; }
+
+/* FORMULA BOX */
+.formula-box { background: var(--violet-dark); color: #fff; border-radius: 8px; padding: 30px 36px; margin: 8px 0 32px; }
+.formula-box .fb-label { font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #e6c9ff; margin-bottom: 16px; }
+.formula-box .fb-line { font-family: 'Fira Code', monospace; font-size: 14px; color: #fff; line-height: 2.1; }
+.formula-box .fb-line b { color: var(--purple); font-weight: 500; }
+.formula-box .fb-line .fk { color: #7be0a8; }
+
+@media (max-width: 900px) {
+  .masthead { grid-template-columns: 1fr; }
+  .mh-left { border-right: none; border-bottom: 2px solid var(--ink); }
+  .g2, .kpi-grid, .layer, .vdiag-split { grid-template-columns: 1fr; }
+  .vdiag-split { flex-direction: column; align-items: center; }
+  .layer { grid-template-columns: 1fr; }
+  .stat-strip { grid-template-columns: 1fr; }
+  main, .ribbon, .tabs, .mh-left, .mh-right { padding-left: 24px; padding-right: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ribbon">
+  <span class="rib-l">Independent Prototype · Document Intelligence &amp; MLOps</span>
+  <span class="rib-r">CLARITY · DOCUMENT GOVERNANCE · 2026</span>
+</div>
+
+<div class="masthead">
+  <div class="mh-left">
+    <div class="mh-eyebrow">Pre-Governance Layer for Document-Intake Pipelines</div>
+    <h1 class="mh-title">CLARITY<br><span class="accent">Document Readiness</span> <span class="under">Intelligent Engine</span></h1>
+    <p class="mh-desc">A prototype pre-governance layer that grades every incoming Purchase Order, Shipment, and Invoice triple as GOOD, MEDIUM, or BAD, and routes each set to the right amount of automated explanation and human review — instead of forcing every document through the same manual path regardless of risk.</p>
+    <div class="tag-row">
+      <span class="tag amber">pdfplumber Extraction</span>
+      <span class="tag amber">Random Forest (scikit-learn)</span>
+      <span class="tag maroon">FAISS + LangChain</span>
+      <span class="tag maroon">Gemini · RAG</span>
+      <span class="tag">Streamlit Dashboard</span>
+      <span class="tag">Target-Leakage Prevention</span>
+    </div>
+  </div>
+  <div class="mh-right">
+    <p class="mhr-title">At a Glance</p>
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div><div class="stat-label">Test Accuracy</div><div class="stat-val">93.2% overall · 96.6% BAD recall</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🛡</div>
+      <div><div class="stat-label">Safety Guarantee</div><div class="stat-val">Zero BAD sets misclassified as GOOD</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📥</div>
+      <div><div class="stat-label">Design Volume</div><div class="stat-val">~1,500 document triples / week</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="show(0)">Overview &amp; Architecture <span class="n">01</span></button>
+  <button class="tab" onclick="show(1)">Data &amp; Features <span class="n">02</span></button>
+  <button class="tab" onclick="show(2)">Rules &amp; Random Forest <span class="n">03</span></button>
+  <button class="tab" onclick="show(3)">Decision &amp; RAG <span class="n">04</span></button>
+  <button class="tab" onclick="show(4)">Results &amp; Validation <span class="n">05</span></button>
+  <button class="tab" onclick="show(5)">Limitations &amp; Close <span class="n">06</span></button>
+</div>
+
+<main>
+
+<!-- TAB 1: OVERVIEW & ARCHITECTURE -->
+<div class="panel on" id="p0">
+  <p class="sec-eyebrow">Tab One</p>
+  <h2 class="sec-h">Overview <span>&amp; Architecture</span></h2>
+  <p class="sec-sub">What CLARITY does, in plain language and in technical language, followed by the three design principles that run through the entire codebase and the end-to-end pipeline a single document triple travels through.</p>
+
+  <div class="g2">
+    <div class="box">
+      <p class="box-eye a">In Plain Terms</p>
+      <p class="box-title">A smart triage layer sitting in front of a manual document review queue</p>
+      <div class="box-body">
+        <p>Picture a mid-size operation receiving roughly 1,500 Purchase Order, Shipment, and Invoice bundles every week. Without CLARITY, every single bundle takes the same manual review path, whether it is flawless or full of mismatches. CLARITY reads each bundle, compares the three documents against each other and against how that client and vendor have historically behaved, and assigns a grade — GOOD, MEDIUM, or BAD.</p>
+        <p>That grade decides how much of a reviewer's time the bundle actually deserves: GOOD sets move straight through, MEDIUM sets get a light, AI-explained check, and BAD sets go to full manual review without ever touching the generative-AI layer at all.</p>
+      </div>
+    </div>
+    <div class="box">
+      <p class="box-eye a">In Technical Terms</p>
+      <p class="box-title">A dual-engine scoring layer feeding a fixed-threshold router and a grounded RAG explainer</p>
+      <div class="box-body">
+        <p>PDF triples are extracted with <span class="hi">pdfplumber</span> into structured JSON, then converted into a feature vector scored independently by a <span class="hi">deterministic Rules Engine</span> and a <span class="hi2">scikit-learn RandomForestClassifier</span>. A <span class="hi">Decision Engine</span> converts the model's readiness probability into a grade against two fixed thresholds.</p>
+        <p>GOOD and MEDIUM sets are explained through a <span class="hi2">FAISS-based retrieval</span> step and a <span class="hi2">LangChain-orchestrated Gemini</span> prompt grounded in current and historical evidence. BAD sets bypass generative inference entirely. Every result persists to <span class="hi">SQLite</span> behind a seven-page <span class="hi">Streamlit</span> dashboard that contains no business logic of its own.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="box full">
+    <p class="box-eye a">Three Principles, Enforced by an Automated Test Suite</p>
+    <p class="box-title">What keeps the deterministic and probabilistic halves of the system honest</p>
+    <ul class="role-list">
+      <li><strong>Deterministic and probabilistic reasoning stay strictly separate:</strong> the Rules Engine never consults the model's probability, and a rules failure never silently overwrites the model's grade — a set that fails several rules can still be graded GOOD, with the failures shown alongside it rather than suppressing it.</li>
+      <li><strong>No component fabricates a result when a dependency is unavailable:</strong> FAISS, LangChain, and the Gemini API each raise an explicit error rather than degrading to a fake fallback, so a missing dependency is loud, not silently wrong.</li>
+      <li><strong>Historical features are computed only from data available at scoring time:</strong> client- and vendor-level statistics used to featurize any split are built strictly from data preceding it in time, which rules out target leakage from a document's own outcome into its own prediction.</li>
+    </ul>
+  </div>
+
+  <div class="box full">
+    <p class="box-eye a">The Pipeline, End to End</p>
+    <p class="box-title">One PO / Shipment / Invoice triple, from a client's PDF to a human reviewer's screen</p>
+    <div class="vdiag">
+      <div class="vdiag-box c1"><div class="vb-t">Client PDF Triple</div><div class="vb-d">Purchase Order + Shipment + Invoice</div></div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-box c1"><div class="vb-t">Extraction</div><div class="vb-d">pdfplumber → structured JSON, never raw PDF text downstream</div></div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-box c1"><div class="vb-t">Feature Engineering</div><div class="vb-d">Cross-document consistency + client / vendor historical behavior</div></div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-split">
+        <div class="vdiag-box c2"><div class="vb-t">Rules Engine</div><div class="vb-d">Deterministic checks</div></div>
+        <div class="vdiag-box c2"><div class="vb-t">Random Forest</div><div class="vb-d">Readiness probability</div></div>
+      </div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-box c3"><div class="vb-t">Decision Engine</div><div class="vb-d">Fixed thresholds → GOOD / MEDIUM / BAD + routing</div></div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-split">
+        <div class="vdiag-box c4"><div class="vb-t">FAISS + Gemini</div><div class="vb-d">GOOD / MEDIUM · grounded explanation</div></div>
+        <div class="vdiag-box c4"><div class="vb-t">Full Manual Review</div><div class="vb-d">BAD · AI processing skipped entirely</div></div>
+      </div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-box c5"><div class="vb-t">SQLite Persistence</div><div class="vb-d">Upsert keyed by document-set ID</div></div>
+      <div class="vdiag-arrow">↓</div>
+      <div class="vdiag-box c5"><div class="vb-t">Streamlit Dashboard → Reviewer</div><div class="vb-d">Seven pages, zero business logic of its own</div></div>
+    </div>
+    <p class="vdiag-note">A single function, process_document_set(), is the sole entry point wiring every stage together — the dashboard, the automated tests, and any future batch script all exercise identical logic.</p>
+  </div>
+</div>
+
+<!-- TAB 2: DATA & FEATURES -->
+<div class="panel" id="p1">
+  <p class="sec-eyebrow">Tab Two</p>
+  <h2 class="sec-h">Data <span>&amp; Feature Engineering</span></h2>
+  <p class="sec-sub">In the absence of real client data, CLARITY generates its own historical corpus and verifies the PDF round trip end to end, then converts every document set into a compact, leakage-free numeric vector.</p>
+
+  <div class="stat-strip">
+    <div class="stat-block">
+      <p class="sb-eye">Synthetic Corpus</p>
+      <p class="sb-num">5,000</p>
+      <p class="sb-body">Document sets generated across five synthetic clients, each assigned one of five behavioral profiles — strong, quantity_issues, amount_issues, delay_issues, moderate — configurable toward 20,000–50,000 for production scale.</p>
+    </div>
+    <div class="stat-block">
+      <p class="sb-eye">Class Balance</p>
+      <p class="sb-num">42.5 / 42.6 / 14.9</p>
+      <p class="sb-body">Percent split across GOOD, MEDIUM, and BAD respectively, produced by an explicit scoring function of quantity mismatch, amount mismatch, delay, currency mismatch, and missing fields.</p>
+    </div>
+    <div class="stat-block">
+      <p class="sb-eye">PDF Round Trip</p>
+      <p class="sb-num">Verified</p>
+      <p class="sb-body">A subset of generated sets is rendered into real PDFs from ground-truth values, then parsed back with pdfplumber; only the structured JSON — never raw PDF text — feeds feature engineering.</p>
+    </div>
+  </div>
+
+  <p class="box-eye a" style="margin-bottom:16px;">Six Feature Groups, One Flat Vector Per Document Set</p>
+  <table class="stk">
+    <thead><tr><th>#</th><th>Feature Group</th><th>What It Captures</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>01</td>
+        <td>Document Completeness</td>
+        <td>Whether mandatory fields across the PO, Shipment, and Invoice are present and valid before any cross-document comparison is even attempted.</td>
+      </tr>
+      <tr>
+        <td>02</td>
+        <td>PO ↔ Shipment Consistency</td>
+        <td>Quantity mismatch between what was ordered and what shipped, and shipment delay relative to the agreed schedule.</td>
+      </tr>
+      <tr>
+        <td>03</td>
+        <td>PO ↔ Invoice Consistency</td>
+        <td>Quantity mismatch, unit-price and invoice-amount variance, and currency mismatch between the order and what was billed.</td>
+      </tr>
+      <tr>
+        <td>04</td>
+        <td>Cross-Document Signals</td>
+        <td>Aggregate mismatch count plus quantity- and amount-consistency scores computed across all three documents together — the single strongest predictive signal in the system.</td>
+      </tr>
+      <tr>
+        <td>05</td>
+        <td>Client Historical Behavior</td>
+        <td>Pre-aggregated statistics on how a given client's document sets have graded historically, looked up by client ID rather than encoded directly.</td>
+      </tr>
+      <tr>
+        <td>06</td>
+        <td>Vendor Historical Failure Rate</td>
+        <td>The vendor's historical rate of failed or flagged sets, giving the model a prior on vendor reliability without ever seeing a raw vendor identifier.
+          <span class="ex"><b>Design rule:</b> high-cardinality identifiers like PO numbers are never one-hot or label encoded — only used as lookup keys into these pre-aggregated tables.</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="chal-card">
+    <span class="chal-n">01</span>
+    <p class="chal-title">Client and vendor historical features are themselves derived from outcomes — a natural leakage vector</p>
+    <div class="chal-row">
+      <span class="chal-lbl p">Risk</span>
+      <span class="chal-txt">If a client's historical GOOD/BAD rate is computed using data that includes the very document being scored, the model effectively sees its own answer before predicting it.</span>
+    </div>
+    <div class="chal-row">
+      <span class="chal-lbl s">Safeguard</span>
+      <span class="chal-txt">The historical-statistics tables used to featurize any split are built strictly from data preceding it in time, and the feature matrix never includes the label or its underlying quality score — properties directly asserted by automated tests, not left to code review alone.</span>
+    </div>
+  </div>
+
+  <div class="chal-card">
+    <span class="chal-n">02</span>
+    <p class="chal-title">High-cardinality identifiers threaten to blow up the feature space and hurt generalization</p>
+    <div class="chal-row">
+      <span class="chal-lbl p">Risk</span>
+      <span class="chal-txt">PO numbers and similar identifiers are effectively unique per document — one-hot or label encoding them directly would make the model memorize individual documents instead of learning generalizable patterns.</span>
+    </div>
+    <div class="chal-row">
+      <span class="chal-lbl s">Safeguard</span>
+      <span class="chal-txt">Identifiers are used only as lookup keys into pre-aggregated historical statistics, keeping the feature space compact and generalizable across clients and vendors the model has never scored before.</span>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: RULES & RANDOM FOREST -->
+<div class="panel" id="p2">
+  <p class="sec-eyebrow">Tab Three</p>
+  <h2 class="sec-h">Rules Engine <span>&amp; Random Forest</span></h2>
+  <p class="sec-sub">Two independent scoring paths run on the same structured record — one deterministic, one probabilistic — and neither is allowed to silently override the other.</p>
+
+  <div class="g2">
+    <div class="box">
+      <p class="box-eye a">Deterministic Path</p>
+      <p class="box-title">Rules Engine</p>
+      <div class="box-body">
+        <p>Checks mandatory fields, PO-to-Shipment and PO-to-Invoice quantity mismatches against a <span class="hi">2% tolerance</span>, invoice-amount and currency mismatches, invalid dates, duplicate identifiers, mismatched PO references, and shipment delay severity, aggregating failures into an overall pass/fail result.</p>
+        <p>This output is surfaced to the reviewer and to Gemini but <span class="hi2">never silently overrides the model's grade</span> — failures are shown alongside the grade, not used to suppress it.</p>
+      </div>
+    </div>
+    <div class="box">
+      <p class="box-eye a">Probabilistic Path</p>
+      <p class="box-title">Random Forest Readiness Model</p>
+      <div class="box-body">
+        <p>A single scikit-learn <span class="hi">RandomForestClassifier</span> — 300 trees, maximum depth 12, balanced-subsample class weighting, fixed random seed — trained on the engineered feature vector.</p>
+        <p>The dataset is split <span class="hi2">chronologically 70/15/15</span> into train, validation, and test partitions rather than shuffled, mirroring production use: scoring documents that arrive after everything the model was trained on. The GOOD-class probability is used directly as the continuous readiness score.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="box-eye a" style="margin-bottom:16px;">Model Results, on a Representative 5,000-Set Run</p>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <p class="kpi-name">Training Accuracy <span class="kv">97.5%</span></p>
+      <p class="kpi-body">The upper bound of fit on data the model has already seen — expected to be the highest of the three splits.</p>
+    </div>
+    <div class="kpi-card">
+      <p class="kpi-name">Validation Accuracy <span class="kv">92.1%</span></p>
+      <p class="kpi-body">Held-out, chronologically later data used to tune the pipeline without touching the final test partition.</p>
+    </div>
+    <div class="kpi-card">
+      <p class="kpi-name">Test Accuracy <span class="kv">93.2%</span></p>
+      <p class="kpi-body">The final, untouched partition — the most honest estimate of how the model performs on genuinely new documents.</p>
+    </div>
+    <div class="kpi-card biz">
+      <p class="kpi-name">BAD-Class Recall <span class="kv">96.6%</span></p>
+      <p class="kpi-body"><b>Treated as the priority metric</b> — a governance system's costliest error is passing an unready set through as GOOD.</p>
+    </div>
+  </div>
+
+  <p class="box-eye a" style="margin-bottom:16px;">Test-Set Classification Report</p>
+  <table class="rpt">
+    <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+    <tbody>
+      <tr class="bad"><td>BAD</td><td>0.974</td><td>0.966</td><td>0.970</td><td>116</td></tr>
+      <tr class="med"><td>MEDIUM</td><td>0.926</td><td>0.905</td><td>0.915</td><td>304</td></tr>
+      <tr class="good"><td>GOOD</td><td>0.923</td><td>0.946</td><td>0.934</td><td>330</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box full">
+    <p class="box-eye a">Of 116 BAD Sets in the Test Split</p>
+    <p class="box-title">112 correctly caught · 4 flagged MEDIUM · zero misclassified as GOOD</p>
+    <div class="box-body">
+      <p>The top features by Gini importance were the cross-document quantity-consistency score (0.202), PO-to-Shipment quantity mismatch (0.122), PO-to-Invoice quantity mismatch (0.104), unit-price variance (0.095), and cross-document mismatch count (0.068) — consistent with cross-document <span class="hi">variance</span>, not any single document's contents, being the dominant readiness signal.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: DECISION & RAG -->
+<div class="panel" id="p3">
+  <p class="sec-eyebrow">Tab Four</p>
+  <h2 class="sec-h">Decision Engine <span>&amp; Grounded Explanation</span></h2>
+  <p class="sec-sub">Pure routing logic converts a probability into a grade and an action; only GOOD and MEDIUM sets ever reach retrieval or generation.</p>
+
+  <div class="formula-box">
+    <p class="fb-label">Fixed-Threshold Grading — r(x) = P(GOOD | x)</p>
+    <p class="fb-line"><span class="fk">grade(x)</span> = <b>GOOD</b> &nbsp;if r(x) ≥ 0.80</p>
+    <p class="fb-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = <b>MEDIUM</b> if 0.50 ≤ r(x) &lt; 0.80</p>
+    <p class="fb-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = <b>BAD</b> &nbsp;&nbsp;otherwise</p>
+  </div>
+  <p class="box-body" style="margin:-18px 0 32px; max-width:760px;">These thresholds are deliberately global constants rather than per-client parameters — client-specific behavior is instead absorbed into the model through the historical features covered in Tab Two, so clients with different baseline risk profiles are compared on a genuinely equivalent scale.</p>
+
+  <p class="box-eye a" style="margin-bottom:16px;">Grade-Based Routing</p>
+  <table class="rte">
+    <thead><tr><th>Grade</th><th>AI Processing (RAG + Gemini)</th><th>Manual Review</th></tr></thead>
+    <tbody>
+      <tr class="g"><td>GOOD</td><td>Yes</td><td>None</td></tr>
+      <tr class="m"><td>MEDIUM</td><td>Yes</td><td>Light</td></tr>
+      <tr class="b"><td>BAD</td><td>No — skipped entirely, unconditionally</td><td>Full</td></tr>
+    </tbody>
+  </table>
+
+  <div class="g2">
+    <div class="box">
+      <p class="box-eye a">Semantic Retrieval</p>
+      <p class="box-title">FAISS, With Hard Client Isolation</p>
+      <div class="box-body">
+        <p>Historical sets are embedded offline with a <span class="hi">TF-IDF vectorizer</span> followed by a Truncated SVD projection into a fixed <span class="hi">256-dimensional</span> dense space, fit once and reused — never refit — at query time. Vectors are L2-normalized so the FAISS <span class="hi2">IndexFlatIP</span> inner-product search is equivalent to cosine similarity.</p>
+        <p>A search over-fetches, then discards any result whose client ID doesn't match the querying set — one client's history can never leak into another's explanation. Retrieval supplies context only; grading remains the Random Forest's responsibility alone.</p>
+      </div>
+    </div>
+    <div class="box">
+      <p class="box-eye a">Prompt Orchestration</p>
+      <p class="box-title">LangChain → Gemini, Grounded and Bounded</p>
+      <div class="box-body">
+        <p>For every GOOD or MEDIUM set, the current record, rules result, model grade and top features, client historical stats, and FAISS-retrieved context are assembled into a LangChain PromptTemplate. Gemini is instructed to use only supplied evidence, never invent facts, and respond with a fixed <span class="hi">seven-field JSON schema</span> — summary, key findings, anomalies, historical comparison, risk factors, recommendation, confidence.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chal-card">
+    <span class="chal-n">04</span>
+    <p class="chal-title">Gemini's model API returned a deprecation error mid-project</p>
+    <div class="chal-row">
+      <span class="chal-lbl p">Incident</span>
+      <span class="chal-txt">The gemini-1.5-flash model the integration was calling was retired mid-project, surfacing as an HTTP 404 the failure-handling layer had to name specifically rather than mask.</span>
+    </div>
+    <div class="chal-row">
+      <span class="chal-lbl s">Response</span>
+      <span class="chal-txt">Fixed by reconfiguring to gemini-3.6-flash. A missing key, network failure, or malformed response is never papered over with a fabricated summary — the service returns a structured "unavailable" result with a plain-English reason the dashboard displays verbatim; 401/403 names key rejection, 429 uses fixed wording noting deterministic results remain available, with no aggressive retry.</span>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: RESULTS & VALIDATION -->
+<div class="panel" id="p4">
+  <p class="sec-eyebrow">Tab Five</p>
+  <h2 class="sec-h">Results, Validation <span>&amp; Operational Hardening</span></h2>
+  <p class="sec-sub">Governance-critical behaviors are enforced by an automated test suite, and the operational discipline that keeps LLM usage bounded proved as consequential as the modeling choices themselves.</p>
+
+  <div class="stat-strip">
+    <div class="stat-block">
+      <p class="sb-eye">Automated Test Suite</p>
+      <p class="sb-num">29 / 31</p>
+      <p class="sb-body">Tests passed in the development sandbox; 2 skipped cleanly because they require the real faiss package, unavailable offline — no test failed. Coverage spans rule evaluation, no-leakage feature engineering, the PDF round trip, chronological-split training, decision routing, FAISS client isolation, and Gemini response handling.</p>
+    </div>
+    <div class="stat-block">
+      <p class="sb-eye">Presentation Layer Discipline</p>
+      <p class="sb-num">7 pages</p>
+      <p class="sb-body">The Streamlit dashboard is reached through a single navigation selector rather than st.tabs(), because Streamlit re-executes every tab's code on every rerun — a selector paired with one render function per page ensures only the viewed page does any work, or triggers a Gemini call.</p>
+    </div>
+    <div class="stat-block">
+      <p class="sb-eye">Persistence</p>
+      <p class="sb-num">SQLite, upsert</p>
+      <p class="sb-body">Every processed set is keyed by document-set ID with upsert semantics preserving an in-progress reviewer's status across reprocessing; a set with a successful Gemini response is never re-submitted to Gemini on a later pass.</p>
+    </div>
+  </div>
+
+  <div class="uc-full">
+    <p class="ufl-eye">Most Consequential Operational Fix</p>
+    <h3>The historical-bootstrap batch job was silently exhausting the Gemini quota on every fresh startup</h3>
+    <div class="uc-full-body">
+      <p>Prior to hardening, every fresh startup of the dashboard's first-run historical bootstrap silently issued <b>hundreds of Gemini calls</b> while seeding history — exactly the quota-exhausting behavior a constrained LLM integration cannot tolerate.</p>
+      <p>The fix: the bootstrap job now runs the deterministic path only, passed an explicit flag guaranteeing it never calls FAISS or Gemini, for any grade. Only the live document-upload flow — going through the same process_document_set() entry point — is eligible for retrieval and generation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: LIMITATIONS & CLOSE -->
+<div class="panel" id="p5">
+  <p class="sec-eyebrow">Tab Six</p>
+  <h2 class="sec-h">Limitations, Future Work <span>&amp; Conclusion</span></h2>
+  <p class="sec-sub">Built under a small, fixed technology mandate and a network-isolated sandbox, with the honest boundaries of the prototype stated alongside its results.</p>
+
+  <div class="layer">
+    <div>
+      <div class="layer-num">01</div>
+      <div class="layer-name">Sandbox Constraint</div>
+    </div>
+    <div>
+      <p class="layer-title">The live Gemini path, real faiss / langchain-core, and Streamlit itself could not be exercised end to end in the development environment</p>
+      <p class="layer-body">The prototype was developed in a network-isolated sandbox. Every dependent code path still raises an explicit error rather than a fake fallback when a dependency is unavailable, so the boundary of what was and wasn't live-tested is never hidden from the reviewer.</p>
+    </div>
+  </div>
+  <div class="layer">
+    <div>
+      <div class="layer-num">02</div>
+      <div class="layer-name">Corpus Scale</div>
+    </div>
+    <div>
+      <p class="layer-title">The default 5,000-document synthetic corpus is smaller than the 20,000–50,000-record production scale in the original specification</p>
+      <p class="layer-body">Chosen for fast iterative development and adjustable via a single configuration value — scaling up is a config change, not a redesign.</p>
+    </div>
+  </div>
+  <div class="layer">
+    <div>
+      <div class="layer-num">03</div>
+      <div class="layer-name">Future Work</div>
+    </div>
+    <div>
+      <p class="layer-title">Exercising the live Gemini and FAISS paths in a networked environment, and evaluating threshold sensitivity</p>
+      <p class="layer-body">Beyond the two fixed cut points (0.80 / 0.50) currently used for grading, future iterations could study how routing outcomes shift as those thresholds move.</p>
+    </div>
+  </div>
+
+  <div class="box full" style="margin-top:32px;">
+    <p class="box-eye a">Conclusion</p>
+    <p class="box-title">Classical ML makes the governance-critical decision; generative AI only explains it</p>
+    <div class="box-body">
+      <p>CLARITY demonstrates that a document pre-governance layer can combine a single, well-evaluated classical machine-learning model with retrieval-grounded generative explanation <span class="hi">without blurring the boundary</span> between the two. A deterministic Rules Engine and a Random Forest classifier make the governance-critical decisions; a FAISS-plus-Gemini pipeline only explains those decisions for the sets a human reviewer will need to interpret, never touching sets already flagged unready.</p>
+      <p>The classifier avoids the single worst error a governance system can make — passing an unready document set through as ready — and the engineering discipline required to keep LLM usage bounded in an interactive dashboard proved as consequential to the system's practicality as the modeling choices themselves.</p>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(i) {
+  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('on', j===i));
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('on', j===i));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
